@@ -1,60 +1,42 @@
 <?php
-/**
- * @var \App\View\AppView $this
- * @var \App\Model\Entity\Recepti $recepti
- */
+/** @var \App\Model\Entity\Recepti $recepti */
+$this->assign('title', $recepti->naslov);
+$lahkoUpravlja = $lahkoUpravlja ?? false;
 ?>
-<div class="row">
-    <aside class="column">
-        <div class="side-nav">
-            <h4 class="heading"><?= __('Actions') ?></h4>
-            <?= $this->Html->link(__('Edit Recepti'), ['action' => 'edit', $recepti->id], ['class' => 'side-nav-item']) ?>
-            <?= $this->Form->postLink(__('Delete Recepti'), ['action' => 'delete', $recepti->id], ['confirm' => __('Are you sure you want to delete # {0}?', $recepti->id), 'class' => 'side-nav-item']) ?>
-            <?= $this->Html->link(__('List Recepti'), ['action' => 'index'], ['class' => 'side-nav-item']) ?>
-            <?= $this->Html->link(__('New Recepti'), ['action' => 'add'], ['class' => 'side-nav-item']) ?>
-        </div>
-    </aside>
-    <div class="column-responsive column-80">
-        <div class="recepti view content">
-            <h3><?= h($recepti->naslov) ?></h3>
-            <table>
-                <tr>
-                    <th><?= __('Uporabniki') ?></th>
-                    <td><?= $recepti->has('uporabniki') ? $this->Html->link($recepti->uporabniki->uporabnisko_ime, ['controller' => 'Uporabniki', 'action' => 'view', $recepti->uporabniki->id]) : '' ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Naslov') ?></th>
-                    <td><?= h($recepti->naslov) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Slika') ?></th>
-                    <td><?= h($recepti->slika) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Kategorija') ?></th>
-                    <td><?= h($recepti->kategorija) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Id') ?></th>
-                    <td><?= $this->Number->format($recepti->id) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Ustvarjen') ?></th>
-                    <td><?= h($recepti->ustvarjen) ?></td>
-                </tr>
-            </table>
-            <div class="text">
-                <strong><?= __('Opis') ?></strong>
-                <blockquote>
-                    <?= $this->Text->autoParagraph(h($recepti->opis)); ?>
-                </blockquote>
-            </div>
-            <div class="text">
-                <strong><?= __('Navodila') ?></strong>
-                <blockquote>
-                    <?= $this->Text->autoParagraph(h($recepti->navodila)); ?>
-                </blockquote>
-            </div>
+<article class="detail-hero">
+    <div class="detail-image" style="background-image:url('<?= h($recepti->slika ?: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=1200&q=80') ?>')"></div>
+    <div class="detail-content glass-card">
+        <span class="pill"><?= h($recepti->kategorija ?: 'Brez kategorije') ?></span>
+        <h1><?= h($recepti->naslov) ?></h1>
+        <p><?= h($recepti->opis) ?></p>
+        <small>Avtor: <?= h($recepti->uporabniki->uporabnisko_ime ?? 'neznan') ?> · <?= h($recepti->ustvarjen) ?></small>
+        <div class="hero-actions">
+            <?php if ($lahkoUpravlja): ?>
+                <?= $this->Html->link('Uredi', ['action' => 'edit', $recepti->id], ['class' => 'button primary']) ?>
+                <?= $this->Form->postLink('Izbriši', ['action' => 'delete', $recepti->id], ['class' => 'button ghost', 'confirm' => 'Res izbrišem ta recept?']) ?>
+            <?php endif; ?>
+            <?= $this->Html->link('Nazaj', ['action' => 'index'], ['class' => 'button ghost']) ?>
         </div>
     </div>
-</div>
+</article>
+
+<section class="content-card">
+    <h2>Navodila</h2>
+    <p><?= nl2br(h($recepti->navodila)) ?></p>
+</section>
+
+<section class="content-card">
+    <h2>Komentarji</h2>
+    <?php if (!empty($recepti->komentarji)): ?>
+        <div class="comments-list">
+            <?php foreach ($recepti->komentarji as $komentar): ?>
+                <div class="comment-box">
+                    <strong><?= h($komentar->uporabniki->uporabnisko_ime ?? 'Uporabnik') ?></strong>
+                    <p><?= h($komentar->vsebina) ?></p>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <p>Ta recept še nima komentarjev.</p>
+    <?php endif; ?>
+</section>
