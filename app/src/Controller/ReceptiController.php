@@ -3,108 +3,86 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-/**
- * Recepti Controller
- *
- * @property \App\Model\Table\ReceptiTable $Recepti
- * @method \App\Model\Entity\Recepti[]|\Cake\Datasource\ResultSetInterface paginate($object = null, array $settings = [])
- */
 class ReceptiController extends AppController
 {
-    /**
-     * Index method
-     *
-     * @return \Cake\Http\Response|null|void Renders view
-     */
     public function index()
     {
-        $this->paginate = [
-            'contain' => ['Uporabniki'],
-        ];
-        $recepti = $this->paginate($this->Recepti);
+        $query = $this->Recepti->find()->contain(['Uporabniki'])->orderDesc('Recepti.ustvarjen');
+        $iskanje = trim((string)$this->request->getQuery('q'));
+        $kategorija = trim((string)$this->request->getQuery('kategorija'));
 
-        $this->set(compact('recepti'));
+        if ($iskanje !== '') {
+            $query->where([
+                'OR' => [
+                    'Recepti.naslov LIKE' => '%' . $iskanje . '%',
+                    'Recepti.opis LIKE' => '%' . $iskanje . '%',
+                    'Recepti.navodila LIKE' => '%' . $iskanje . '%',
+                ],
+            ]);
+        }
+
+        if ($kategorija !== '') {
+            $query->where(['Recepti.kategorija' => $kategorija]);
+        }
+
+        $this->paginate = ['limit' => 9];
+        $recepti = $this->paginate($query);
+        $kategorije = $this->Recepti->find('list', ['keyField' => 'kategorija', 'valueField' => 'kategorija'])
+            ->where(['kategorija IS NOT' => null, 'kategorija !=' => ''])
+            ->distinct(['kategorija'])
+            ->orderAsc('kategorija')
+            ->all();
+
+        $this->set(compact('recepti', 'kategorije', 'iskanje', 'kategorija'));
     }
 
-    /**
-     * View method
-     *
-     * @param string|null $id Recepti id.
-     * @return \Cake\Http\Response|null|void Renders view
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function view($id = null)
     {
         $recepti = $this->Recepti->get($id, [
-            'contain' => ['Uporabniki'],
+            'contain' => ['Uporabniki', 'Komentarji' => ['Uporabniki']],
         ]);
-
         $this->set(compact('recepti'));
     }
 
-    /**
-     * Add method
-     *
-     * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
-     */
     public function add()
     {
         $recepti = $this->Recepti->newEmptyEntity();
         if ($this->request->is('post')) {
             $recepti = $this->Recepti->patchEntity($recepti, $this->request->getData());
             if ($this->Recepti->save($recepti)) {
-                $this->Flash->success(__('The recepti has been saved.'));
-
+                $this->Flash->success(__('Recept je shranjen.'));
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('The recepti could not be saved. Please, try again.'));
+            $this->Flash->error(__('Recepta ni bilo mogoče shraniti. Preveri podatke.'));
         }
         $uporabniki = $this->Recepti->Uporabniki->find('list', ['limit' => 200])->all();
         $this->set(compact('recepti', 'uporabniki'));
     }
 
-    /**
-     * Edit method
-     *
-     * @param string|null $id Recepti id.
-     * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function edit($id = null)
     {
-        $recepti = $this->Recepti->get($id, [
-            'contain' => [],
-        ]);
+        $recepti = $this->Recepti->get($id, ['contain' => []]);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $recepti = $this->Recepti->patchEntity($recepti, $this->request->getData());
             if ($this->Recepti->save($recepti)) {
-                $this->Flash->success(__('The recepti has been saved.'));
-
+                $this->Flash->success(__('Recept je posodobljen.'));
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('The recepti could not be saved. Please, try again.'));
+            $this->Flash->error(__('Recepta ni bilo mogoče posodobiti.'));
         }
         $uporabniki = $this->Recepti->Uporabniki->find('list', ['limit' => 200])->all();
         $this->set(compact('recepti', 'uporabniki'));
     }
 
-    /**
-     * Delete method
-     *
-     * @param string|null $id Recepti id.
-     * @return \Cake\Http\Response|null|void Redirects to index.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);
         $recepti = $this->Recepti->get($id);
         if ($this->Recepti->delete($recepti)) {
-            $this->Flash->success(__('The recepti has been deleted.'));
+            $this->Flash->success(__('Recept je izbrisan.'));
         } else {
-            $this->Flash->error(__('The recepti could not be deleted. Please, try again.'));
+            $this->Flash->error(__('Recepta ni bilo mogoče izbrisati.'));
         }
-
         return $this->redirect(['action' => 'index']);
     }
 }

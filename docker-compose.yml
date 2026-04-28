@@ -1,31 +1,40 @@
-version: '3.8'
 services:
+  web:
+    build: .
+    container_name: ozra_web
+    ports:
+      - "8080:80"
+    volumes:
+      - ./app:/var/www/html
+    environment:
+      DEBUG: "true"
+      DB_HOST: kuharski_db
+      DB_USERNAME: programski_dostop
+      DB_PASSWORD: geslo123
+      DB_DATABASE: kuharji
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     image: mysql:8.0
     container_name: kuharski_db
-    restart: always
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: kuharji
       MYSQL_USER: programski_dostop
       MYSQL_PASSWORD: geslo123
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
-      - db_data:/var/lib/mysql
-      - ./baza.sql:/docker-entrypoint-initdb.d/baza.sql
-
-  web:
-    build: .
-    container_name: kuharski_web
-    depends_on:
-      - db
-    ports:
-      - "8080:80"
-    volumes:
-      - ./app:/var/www/html
-    restart: always
+      - ozra_mysql_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot123"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
 volumes:
-  db_data:
-
+  ozra_mysql_data:

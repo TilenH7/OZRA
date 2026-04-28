@@ -47,6 +47,10 @@ class ReceptiTable extends Table
             'foreignKey' => 'uporabnik_id',
             'joinType' => 'INNER',
         ]);
+        $this->hasMany('Komentarji', [
+            'foreignKey' => 'recept_id',
+            'dependent' => true,
+        ]);
     }
 
     /**
