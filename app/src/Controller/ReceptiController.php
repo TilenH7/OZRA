@@ -49,7 +49,7 @@ class ReceptiController extends AppController
     {
         $query = $this->Recepti->find()->contain(['Uporabniki'])->orderDesc('Recepti.ustvarjen');
         $iskanje = trim((string)$this->request->getQuery('q'));
-        $kategorija = trim((string)$this->request->getQuery('kategorija'));
+        $kategorije_filter = $this->request->getQuery('kategorije');
 
         if ($iskanje !== '') {
             $query->where([
@@ -61,24 +61,22 @@ class ReceptiController extends AppController
             ]);
         }
 
-        if ($kategorija !== '') {
-            $query->where(['Recepti.kategorija' => $kategorija]);
+        if (!empty($kategorije_filter) && is_array($kategorije_filter)) {
+            $orPogoji = [];
+            foreach ($kategorije_filter as $kat) {
+                $orPogoji[] = ['Recepti.kategorija LIKE' => '%' . $kat . '%'];
+            }
+            $query->where(['OR' => $orPogoji]);
         }
 
         $this->paginate = ['limit' => 9];
         $recepti = $this->paginate($query);
-        $kategorije = $this->Recepti->find('list', ['keyField' => 'kategorija', 'valueField' => 'kategorija'])
-            ->where(['kategorija IS NOT' => null, 'kategorija !=' => ''])
-            ->distinct(['kategorija'])
-            ->orderAsc('kategorija')
-            ->all();
 
         $prijavljenUporabnik = $this->prijavljenUporabnik();
         $jeAdmin = $this->jeAdmin();
 
-        $this->set(compact('recepti', 'kategorije', 'iskanje', 'kategorija', 'prijavljenUporabnik', 'jeAdmin'));
+        $this->set(compact('recepti', 'iskanje', 'kategorije_filter', 'prijavljenUporabnik', 'jeAdmin'));
     }
-
     public function view($id = null)
     {
         $recepti = $this->Recepti->get($id, [
@@ -102,8 +100,16 @@ class ReceptiController extends AppController
         $jeAdmin = $this->jeAdmin();
         $recepti = $this->Recepti->newEmptyEntity();
 
-        if ($this->request->is('post')) {
+            if ($this->request->is('post')) {
             $data = $this->request->getData();
+
+            if ($this->request->is('post')) {
+            $data = $this->request->getData();
+
+            // Združi več kategorij
+            if (!empty($data['kategorije']) && is_array($data['kategorije'])) {
+                $data['kategorija'] = implode(', ', $data['kategorije']);
+            }
 
             if (!$jeAdmin) {
                 unset($data['uporabnik_id']);
@@ -117,10 +123,10 @@ class ReceptiController extends AppController
             $recepti = $this->Recepti->patchEntity($recepti, $data);
             if ($this->Recepti->save($recepti)) {
                 $this->Flash->success('Recept je shranjen.');
-
                 return $this->redirect(['action' => 'view', $recepti->id]);
             }
             $this->Flash->error('Recepta ni bilo mogoče shraniti. Preveri podatke.');
+         }
         }
 
         $uporabniki = $this->Recepti->Uporabniki->find('list', ['limit' => 200])->all();
@@ -146,6 +152,13 @@ class ReceptiController extends AppController
 
         if ($this->request->is(['patch', 'post', 'put'])) {
             $data = $this->request->getData();
+            if ($this->request->is(['patch', 'post', 'put'])) {
+             $data = $this->request->getData();
+
+            // Združi več kategorij
+            if (!empty($data['kategorije']) && is_array($data['kategorije'])) {
+                $data['kategorija'] = implode(', ', $data['kategorije']);
+            }
 
             if (!$jeAdmin) {
                 unset($data['uporabnik_id']);
@@ -159,10 +172,10 @@ class ReceptiController extends AppController
             $recepti = $this->Recepti->patchEntity($recepti, $data);
             if ($this->Recepti->save($recepti)) {
                 $this->Flash->success('Recept je posodobljen.');
-
                 return $this->redirect(['action' => 'view', $recepti->id]);
             }
             $this->Flash->error('Recepta ni bilo mogoče posodobiti.');
+            }
         }
 
         $uporabniki = $this->Recepti->Uporabniki->find('list', ['limit' => 200])->all();

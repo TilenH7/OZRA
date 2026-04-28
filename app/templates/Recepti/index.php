@@ -21,11 +21,40 @@ $jeAdmin = $jeAdmin ?? false;
 <div class="filter-card">
     <?= $this->Form->create(null, ['type' => 'get', 'class' => 'filter-form']) ?>
         <?= $this->Form->control('q', ['label' => false, 'placeholder' => 'Išči recept...', 'value' => $iskanje ?? '']) ?>
-        <?= $this->Form->control('kategorija', ['label' => false, 'empty' => 'Vse kategorije', 'options' => $kategorije, 'value' => $kategorija ?? '']) ?>
         <?= $this->Form->button('Išči', ['class' => 'button primary']) ?>
         <?= $this->Html->link('Reset', ['action' => 'index'], ['class' => 'button ghost']) ?>
     <?= $this->Form->end() ?>
+    
+    <div class="kategorije-checkboxes" style="margin-top:1rem" id="filter-chips">
+        <?php
+        $izbraneKategorije = (array)$this->request->getQuery('kategorije');
+        $vseKategorije = ['kosilo' => 'Kosilo', 'vecerja' => 'Večerja', 'zajtrk' => 'Zajtrk', 'sladica' => 'Sladica', 'glavna_jed' => 'Glavna jed', 'juha' => 'Juha', 'solata' => 'Solata', 'pijaca' => 'Pijača'];
+        foreach ($vseKategorije as $key => $label):
+            $selected = in_array($key, $izbraneKategorije) ? 'selected' : '';
+        ?>
+        <label class="kategorija-chip <?= $selected ?>" onclick="filterKategorija('<?= $key ?>', this)">
+            <?= $label ?>
+        </label>
+        <?php endforeach; ?>
+    </div>
 </div>
+
+<script>
+let izbraneKat = <?= json_encode((array)$this->request->getQuery('kategorije')) ?>;
+
+function filterKategorija(key, el) {
+    el.classList.toggle('selected');
+    if (izbraneKat.includes(key)) {
+        izbraneKat = izbraneKat.filter(k => k !== key);
+    } else {
+        izbraneKat.push(key);
+    }
+    const q = new URLSearchParams(window.location.search);
+    q.delete('kategorije[]');
+    izbraneKat.forEach(k => q.append('kategorije[]', k));
+    window.location.search = q.toString();
+}
+</script>
 
 <div class="recipe-grid">
     <?php foreach ($recepti as $recept): ?>

@@ -1,6 +1,6 @@
 <?php
 /** @var \App\View\AppView $this */
-$appTitle = 'OZRA recepti';
+$appTitle = 'Kuharski recepti';
 ?>
 <!DOCTYPE html>
 <html lang="sl">
@@ -17,14 +17,24 @@ $appTitle = 'OZRA recepti';
 <body>
     <nav class="ozra-nav">
         <a class="brand" href="<?= $this->Url->build('/') ?>">
-            <span class="brand-mark">O</span>
-            <span>OZRA</span>
+            <span class="brand-mark">KR</span>
+            <span>Kuharski recepti</span>
         </a>
         <div class="nav-links">
             <?= $this->Html->link('Recepti', ['controller' => 'Recepti', 'action' => 'index']) ?>
-            <?= $this->Html->link('Sestavine', ['controller' => 'Sestavine', 'action' => 'index']) ?>
-            <?= $this->Html->link('Uporabniki', ['controller' => 'Uporabniki', 'action' => 'index']) ?>
-            <?= $this->Html->link('Komentarji', ['controller' => 'Komentarji', 'action' => 'index']) ?>
+            <?= $this->Html->link('Forum', ['controller' => 'Forum', 'action' => 'index']) ?>
+            <?php 
+            $session = $this->request->getSession()->read('Auth.User');
+            if ($session): ?>
+                <?php if ($session['vloga'] === 'admin'): ?>
+                    <?= $this->Html->link('Admin', ['controller' => 'Uporabniki', 'action' => 'adminPanel']) ?>
+                <?php endif; ?>
+                <?= $this->Html->link($session['uporabnisko_ime'], ['controller' => 'Uporabniki', 'action' => 'userPanel']) ?>
+                <?= $this->Html->link('Odjava', ['controller' => 'Uporabniki', 'action' => 'logout']) ?>
+            <?php else: ?>
+                <?= $this->Html->link('Prijava', ['controller' => 'Uporabniki', 'action' => 'login']) ?>
+                <?= $this->Html->link('Registracija', ['controller' => 'Uporabniki', 'action' => 'registracija']) ?>
+            <?php endif; ?>
         </div>
     </nav>
 
@@ -34,8 +44,7 @@ $appTitle = 'OZRA recepti';
     </main>
 
     <footer class="ozra-footer">
-        <span>Barvna paleta: #7400B8 → #80FFDB</span>
-        <span>Made for OZRA</span>
+    <span>© <?= date('Y') ?> Kuharski recepti. Vse pravice pridržane</span>
     </footer>
 </body>
 </html>

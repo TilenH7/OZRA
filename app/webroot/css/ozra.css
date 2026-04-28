@@ -156,3 +156,219 @@ textarea { min-height: 150px; }
   .recipe-grid { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr; }
 }
+
+/* Prijavni obrazec */ 
+.auth-page {
+    display: flex;
+    justify-content: center;
+    padding: 3rem 1rem;
+}
+
+.auth-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 440px;
+}
+
+.auth-card h1 {
+    margin-bottom: 0.5rem;
+}
+
+.auth-card p {
+    margin-bottom: 1.5rem;
+    color: #666;
+}
+
+.auth-card div {
+    margin-bottom: 1.2rem;
+}
+
+.auth-card label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.auth-card input[type="email"],
+.auth-card input[type="password"],
+.auth-card input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #fafafa;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.auth-card input:focus {
+    outline: none;
+    border-color: #7400B8;
+    background: white;
+}
+
+.auth-card button {
+    width: 100%;
+    padding: 0.75rem;
+    background: #7400B8;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+.auth-card button:hover {
+    background: #5a0090;
+}
+
+.login-help {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f5f0ff;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+/* Filter forma */
+.filter-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.filter-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-form input[type="text"],
+.filter-form input[type="search"] {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.65rem 1rem;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #fafafa;
+    transition: border-color 0.2s;
+}
+
+.filter-form input:focus {
+    outline: none;
+    border-color: #7400B8;
+    background: white;
+}
+
+/* Kategorije checkboxes */
+.kategorije-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.kategorija-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    background: white;
+    user-select: none;
+}
+
+.kategorija-chip input {
+    display: none;
+}
+
+.kategorija-chip.selected {
+    border-color: #7400B8;
+    background: #f5f0ff;
+    color: #7400B8;
+    font-weight: 600;
+}
+
+/* Dodaj recept forma */
+.form-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+.form-card h1 {
+    margin-bottom: 0.5rem;
+}
+
+.form-card .input,
+.form-card input[type="text"],
+.form-card input[type="url"],
+.form-card textarea,
+.form-card select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #fafafa;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.form-card input:focus,
+.form-card textarea:focus,
+.form-card select:focus {
+    outline: none;
+    border-color: #7400B8;
+    background: white;
+}
+
+.form-card label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.form-card .form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-card button[type="submit"] {
+    width: 100%;
+    padding: 0.75rem;
+    background: #7400B8;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+.form-card button[type="submit"]:hover {
+    background: #5a0090;
+}
