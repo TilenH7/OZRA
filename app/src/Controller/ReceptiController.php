@@ -5,6 +5,46 @@ namespace App\Controller;
 
 class ReceptiController extends AppController
 {
+    private function prijavljenUporabnik(): ?array
+    {
+        $uporabnik = $this->request->getSession()->read('Auth.User');
+
+        return is_array($uporabnik) ? $uporabnik : null;
+    }
+
+    private function jeAdmin(): bool
+    {
+        $uporabnik = $this->prijavljenUporabnik();
+
+        return ($uporabnik['vloga'] ?? '') === 'admin';
+    }
+
+    private function zahtevajPrijavo()
+    {
+        if (!$this->prijavljenUporabnik()) {
+            $this->Flash->error('Za to dejanje se moraš najprej prijaviti.');
+
+            return $this->redirect(['controller' => 'Uporabniki', 'action' => 'login']);
+        }
+
+        return null;
+    }
+
+    private function lahkoUpravljaRecept($recept): bool
+    {
+        $uporabnik = $this->prijavljenUporabnik();
+
+        if (!$uporabnik) {
+            return false;
+        }
+
+        if (($uporabnik['vloga'] ?? '') === 'admin') {
+            return true;
+        }
+
+        return (int)$recept->uporabnik_id === (int)$uporabnik['id'];
+    }
+
     public function index()
     {
         $query = $this->Recepti->find()->contain(['Uporabniki'])->orderDesc('Recepti.ustvarjen');
@@ -33,7 +73,10 @@ class ReceptiController extends AppController
             ->orderAsc('kategorija')
             ->all();
 
-        $this->set(compact('recepti', 'kategorije', 'iskanje', 'kategorija'));
+        $prijavljenUporabnik = $this->prijavljenUporabnik();
+        $jeAdmin = $this->jeAdmin();
+
+        $this->set(compact('recepti', 'kategorije', 'iskanje', 'kategorija', 'prijavljenUporabnik', 'jeAdmin'));
     }
 
     public function view($id = null)
@@ -41,48 +84,113 @@ class ReceptiController extends AppController
         $recepti = $this->Recepti->get($id, [
             'contain' => ['Uporabniki', 'Komentarji' => ['Uporabniki']],
         ]);
-        $this->set(compact('recepti'));
+
+        $prijavljenUporabnik = $this->prijavljenUporabnik();
+        $lahkoUpravlja = $this->lahkoUpravljaRecept($recepti);
+
+        $this->set(compact('recepti', 'prijavljenUporabnik', 'lahkoUpravlja'));
     }
 
     public function add()
     {
-        $recepti = $this->Recepti->newEmptyEntity();
-        if ($this->request->is('post')) {
-            $recepti = $this->Recepti->patchEntity($recepti, $this->request->getData());
-            if ($this->Recepti->save($recepti)) {
-                $this->Flash->success(__('Recept je shranjen.'));
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('Recepta ni bilo mogoče shraniti. Preveri podatke.'));
+        $redirect = $this->zahtevajPrijavo();
+        if ($redirect) {
+            return $redirect;
         }
+
+        $prijavljenUporabnik = $this->prijavljenUporabnik();
+        $jeAdmin = $this->jeAdmin();
+        $recepti = $this->Recepti->newEmptyEntity();
+
+        if ($this->request->is('post')) {
+            $data = $this->request->getData();
+
+            if (!$jeAdmin) {
+                unset($data['uporabnik_id']);
+                $data['uporabnik_id'] = $prijavljenUporabnik['id'];
+            } elseif (empty($data['uporabnik_id'])) {
+                $data['uporabnik_id'] = $prijavljenUporabnik['id'];
+            }
+
+            unset($data['ustvarjen']);
+
+            $recepti = $this->Recepti->patchEntity($recepti, $data);
+            if ($this->Recepti->save($recepti)) {
+                $this->Flash->success('Recept je shranjen.');
+
+                return $this->redirect(['action' => 'view', $recepti->id]);
+            }
+            $this->Flash->error('Recepta ni bilo mogoče shraniti. Preveri podatke.');
+        }
+
         $uporabniki = $this->Recepti->Uporabniki->find('list', ['limit' => 200])->all();
-        $this->set(compact('recepti', 'uporabniki'));
+        $this->set(compact('recepti', 'uporabniki', 'prijavljenUporabnik', 'jeAdmin'));
     }
 
     public function edit($id = null)
     {
-        $recepti = $this->Recepti->get($id, ['contain' => []]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $recepti = $this->Recepti->patchEntity($recepti, $this->request->getData());
-            if ($this->Recepti->save($recepti)) {
-                $this->Flash->success(__('Recept je posodobljen.'));
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('Recepta ni bilo mogoče posodobiti.'));
+        $redirect = $this->zahtevajPrijavo();
+        if ($redirect) {
+            return $redirect;
         }
+
+        $recepti = $this->Recepti->get($id, ['contain' => ['Uporabniki']]);
+        if (!$this->lahkoUpravljaRecept($recepti)) {
+            $this->Flash->error('Lahko urejaš samo svoje recepte.');
+
+            return $this->redirect(['action' => 'view', $recepti->id]);
+        }
+
+        $prijavljenUporabnik = $this->prijavljenUporabnik();
+        $jeAdmin = $this->jeAdmin();
+
+        if ($this->request->is(['patch', 'post', 'put'])) {
+            $data = $this->request->getData();
+
+            if (!$jeAdmin) {
+                unset($data['uporabnik_id']);
+                $data['uporabnik_id'] = $recepti->uporabnik_id;
+            } elseif (empty($data['uporabnik_id'])) {
+                $data['uporabnik_id'] = $recepti->uporabnik_id;
+            }
+
+            unset($data['ustvarjen']);
+
+            $recepti = $this->Recepti->patchEntity($recepti, $data);
+            if ($this->Recepti->save($recepti)) {
+                $this->Flash->success('Recept je posodobljen.');
+
+                return $this->redirect(['action' => 'view', $recepti->id]);
+            }
+            $this->Flash->error('Recepta ni bilo mogoče posodobiti.');
+        }
+
         $uporabniki = $this->Recepti->Uporabniki->find('list', ['limit' => 200])->all();
-        $this->set(compact('recepti', 'uporabniki'));
+        $this->set(compact('recepti', 'uporabniki', 'prijavljenUporabnik', 'jeAdmin'));
     }
 
     public function delete($id = null)
     {
+        $redirect = $this->zahtevajPrijavo();
+        if ($redirect) {
+            return $redirect;
+        }
+
         $this->request->allowMethod(['post', 'delete']);
         $recepti = $this->Recepti->get($id);
-        if ($this->Recepti->delete($recepti)) {
-            $this->Flash->success(__('Recept je izbrisan.'));
-        } else {
-            $this->Flash->error(__('Recepta ni bilo mogoče izbrisati.'));
+
+        if (!$this->lahkoUpravljaRecept($recepti)) {
+            $this->Flash->error('Lahko izbrišeš samo svoje recepte.');
+
+            return $this->redirect(['action' => 'view', $recepti->id]);
         }
+
+        if ($this->Recepti->delete($recepti)) {
+            $this->Flash->success('Recept je izbrisan.');
+        } else {
+            $this->Flash->error('Recepta ni bilo mogoče izbrisati.');
+        }
+
         return $this->redirect(['action' => 'index']);
     }
 }

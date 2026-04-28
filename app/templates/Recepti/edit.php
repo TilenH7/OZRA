@@ -12,7 +12,7 @@
             <?= $this->Form->postLink(
                 __('Delete'),
                 ['action' => 'delete', $recepti->id],
-                ['confirm' => __('Are you sure you want to delete # {0}?', $recepti->id), 'class' => 'side-nav-item']
+                ['confirm' => 'Res izbrišem ta recept?', 'class' => 'side-nav-item']
             ) ?>
             <?= $this->Html->link(__('List Recepti'), ['action' => 'index'], ['class' => 'side-nav-item']) ?>
         </div>
@@ -21,18 +21,19 @@
         <div class="recepti form content">
             <?= $this->Form->create($recepti) ?>
             <fieldset>
-                <legend><?= __('Edit Recepti') ?></legend>
+                <legend>Uredi recept</legend>
                 <?php
-                    echo $this->Form->control('uporabnik_id', ['options' => $uporabniki]);
-                    echo $this->Form->control('naslov');
-                    echo $this->Form->control('opis');
-                    echo $this->Form->control('navodila');
-                    echo $this->Form->control('slika');
-                    echo $this->Form->control('kategorija');
-                    echo $this->Form->control('ustvarjen', ['empty' => true]);
+                    if (!empty($jeAdmin)) {
+                        echo $this->Form->control('uporabnik_id', ['options' => $uporabniki, 'label' => 'Avtor']);
+                    }
+                    echo $this->Form->control('naslov', ['label' => 'Naslov']);
+                    echo $this->Form->control('opis', ['label' => 'Opis']);
+                    echo $this->Form->control('navodila', ['label' => 'Navodila']);
+                    echo $this->Form->control('slika', ['label' => 'URL slike']);
+                    echo $this->Form->control('kategorija', ['label' => 'Kategorija']);
                 ?>
             </fieldset>
-            <?= $this->Form->button(__('Submit')) ?>
+            <?= $this->Form->button('Shrani spremembe') ?>
             <?= $this->Form->end() ?>
         </div>
     </div>

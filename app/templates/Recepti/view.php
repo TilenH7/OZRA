@@ -1,6 +1,7 @@
 <?php
 /** @var \App\Model\Entity\Recepti $recepti */
 $this->assign('title', $recepti->naslov);
+$lahkoUpravlja = $lahkoUpravlja ?? false;
 ?>
 <article class="detail-hero">
     <div class="detail-image" style="background-image:url('<?= h($recepti->slika ?: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=1200&q=80') ?>')"></div>
@@ -10,7 +11,10 @@ $this->assign('title', $recepti->naslov);
         <p><?= h($recepti->opis) ?></p>
         <small>Avtor: <?= h($recepti->uporabniki->uporabnisko_ime ?? 'neznan') ?> · <?= h($recepti->ustvarjen) ?></small>
         <div class="hero-actions">
-            <?= $this->Html->link('Uredi', ['action' => 'edit', $recepti->id], ['class' => 'button primary']) ?>
+            <?php if ($lahkoUpravlja): ?>
+                <?= $this->Html->link('Uredi', ['action' => 'edit', $recepti->id], ['class' => 'button primary']) ?>
+                <?= $this->Form->postLink('Izbriši', ['action' => 'delete', $recepti->id], ['class' => 'button ghost', 'confirm' => 'Res izbrišem ta recept?']) ?>
+            <?php endif; ?>
             <?= $this->Html->link('Nazaj', ['action' => 'index'], ['class' => 'button ghost']) ?>
         </div>
     </div>

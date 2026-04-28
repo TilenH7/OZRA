@@ -2,6 +2,8 @@
 /** @var \App\View\AppView $this */
 /** @var iterable<\App\Model\Entity\Recepti> $recepti */
 $this->assign('title', 'Recepti');
+$prijavljenUporabnik = $prijavljenUporabnik ?? null;
+$jeAdmin = $jeAdmin ?? false;
 ?>
 <section class="page-header">
     <div>
@@ -9,7 +11,11 @@ $this->assign('title', 'Recepti');
         <h1>Recepti</h1>
         <p>Filtriraj po naslovu, opisu ali kategoriji.</p>
     </div>
-    <?= $this->Html->link('Nov recept', ['action' => 'add'], ['class' => 'button primary']) ?>
+    <?php if ($prijavljenUporabnik): ?>
+        <?= $this->Html->link('Nov recept', ['action' => 'add'], ['class' => 'button primary']) ?>
+    <?php else: ?>
+        <?= $this->Html->link('Prijava za dodajanje', ['controller' => 'Uporabniki', 'action' => 'login'], ['class' => 'button primary']) ?>
+    <?php endif; ?>
 </section>
 
 <div class="filter-card">
@@ -23,6 +29,7 @@ $this->assign('title', 'Recepti');
 
 <div class="recipe-grid">
     <?php foreach ($recepti as $recept): ?>
+        <?php $lahkoUpravlja = $prijavljenUporabnik && ($jeAdmin || (int)$recept->uporabnik_id === (int)$prijavljenUporabnik['id']); ?>
         <article class="recipe-card">
             <div class="recipe-image" style="background-image:url('<?= h($recept->slika ?: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=1200&q=80') ?>')"></div>
             <div class="recipe-body">
@@ -32,8 +39,10 @@ $this->assign('title', 'Recepti');
                 <small>Avtor: <?= h($recept->uporabniki->uporabnisko_ime ?? 'neznan') ?></small>
                 <div class="card-actions">
                     <?= $this->Html->link('Odpri', ['action' => 'view', $recept->id]) ?>
-                    <?= $this->Html->link('Uredi', ['action' => 'edit', $recept->id]) ?>
-                    <?= $this->Form->postLink('Izbriši', ['action' => 'delete', $recept->id], ['confirm' => 'Res izbrišem ta recept?']) ?>
+                    <?php if ($lahkoUpravlja): ?>
+                        <?= $this->Html->link('Uredi', ['action' => 'edit', $recept->id]) ?>
+                        <?= $this->Form->postLink('Izbriši', ['action' => 'delete', $recept->id], ['confirm' => 'Res izbrišem ta recept?']) ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </article>
